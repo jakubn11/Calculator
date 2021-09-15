@@ -30,8 +30,9 @@ public class HistoryActivity extends AppCompatActivity {
 
     private ArrayList<String> history;
     private RecyclerView recyclerHistory;
-//    private TextView emptyList;
+    private TextView emptyList;
     private MyRecyclerViewAdapter recyclerAdapter;
+    private RecyclerView.LayoutManager layoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +43,7 @@ public class HistoryActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Historie");
 
         recyclerHistory = findViewById(R.id.recyclerHistory);
-//        emptyList = findViewById(R.id.empty);
+        emptyList = findViewById(R.id.emptyText);
 
         history = new ArrayList<>();
 
@@ -50,19 +51,28 @@ public class HistoryActivity extends AppCompatActivity {
         Bundle extras = intent.getExtras();
         history = extras.getStringArrayList("History");
 
-        recyclerAdapter = new MyRecyclerViewAdapter(getApplicationContext(), history);
-        recyclerHistory.setItemAnimator(new DefaultItemAnimator());
-        recyclerHistory.setAdapter(recyclerAdapter);
+        if (history.size() == 0) {
+            recyclerHistory.setVisibility(View.GONE);
+            emptyList.setVisibility(View.VISIBLE);
+        }else {
+            recyclerHistory.setVisibility(View.VISIBLE);
+            emptyList.setVisibility(View.GONE);
+        }
 
         Collections.reverse(history);
+
+        layoutManager = new LinearLayoutManager(this);
+        recyclerAdapter = new MyRecyclerViewAdapter(getApplicationContext(), history);
+        recyclerHistory.setLayoutManager(layoutManager);
+        recyclerHistory.setAdapter(recyclerAdapter);
 
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-            MenuInflater menuInflater = getMenuInflater();
-            menuInflater.inflate(R.menu.menu, menu);
-            return true;
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu, menu);
+        return true;
     }
 
     @Override
@@ -76,7 +86,7 @@ public class HistoryActivity extends AppCompatActivity {
                 intent.putExtra("DeleteHistory", true);
                 setResult(RESULT_OK, intent);
                 finish();
-            return true;
+                return true;
 
         }
         return super.onOptionsItemSelected(item);
@@ -87,5 +97,4 @@ public class HistoryActivity extends AppCompatActivity {
         finish();
         return true;
     }
-
 }

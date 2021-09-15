@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:gravity="end"
         android:textAlignment="textEnd"
-        android:textSize="30sp"
+        android:textSize="40sp"
         android:textStyle="bold" />
 
 </LinearLayout>
