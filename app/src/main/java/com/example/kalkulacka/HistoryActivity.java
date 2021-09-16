@@ -1,12 +1,14 @@
 package com.example.kalkulacka;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -19,6 +21,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,13 +30,14 @@ import java.util.List;
 import adapters.MyRecyclerViewAdapter;
 import classes.Sample;
 
-public class HistoryActivity extends AppCompatActivity {
+public class HistoryActivity extends AppCompatActivity implements MyRecyclerViewAdapter.OnResultListener {
 
     private ArrayList<String> history;
     private RecyclerView recyclerHistory;
     private TextView emptyList;
     private MyRecyclerViewAdapter recyclerAdapter;
     private RecyclerView.LayoutManager layoutManager;
+    private MenuItem delete, deleteNothing;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,24 +59,29 @@ public class HistoryActivity extends AppCompatActivity {
         if (history.size() == 0) {
             recyclerHistory.setVisibility(View.GONE);
             emptyList.setVisibility(View.VISIBLE);
-        }else {
+        } else {
             recyclerHistory.setVisibility(View.VISIBLE);
             emptyList.setVisibility(View.GONE);
         }
 
         Collections.reverse(history);
 
-        layoutManager = new LinearLayoutManager(this);
-        recyclerAdapter = new MyRecyclerViewAdapter(getApplicationContext(), history);
-        recyclerHistory.setLayoutManager(layoutManager);
+        recyclerAdapter = new MyRecyclerViewAdapter(getApplicationContext(), history, this);
         recyclerHistory.setAdapter(recyclerAdapter);
-
+        layoutManager = new LinearLayoutManager(this);
+        recyclerHistory.setLayoutManager(layoutManager);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.menu, menu);
+
+        delete = menu.findItem(R.id.delete);
+        deleteNothing = menu.findItem(R.id.delete_nothing);
+
+        checkList();
+
         return true;
     }
 
@@ -80,7 +90,6 @@ public class HistoryActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.delete:
                 history.clear();
-                recyclerAdapter = new MyRecyclerViewAdapter(getApplicationContext(), history);
                 recyclerHistory.setAdapter(recyclerAdapter);
                 Intent intent = new Intent();
                 intent.putExtra("DeleteHistory", true);
@@ -88,13 +97,35 @@ public class HistoryActivity extends AppCompatActivity {
                 finish();
                 return true;
 
+            case R.id.delete_nothing:
+                return true;
+
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void checkList() {
+        if (history.isEmpty()) {
+            deleteNothing.setVisible(true);
+            delete.setVisible(false);
+        }else {
+            deleteNothing.setVisible(false);
+            delete.setVisible(true);
+        }
     }
 
     @Override
     public boolean onSupportNavigateUp() {
         finish();
         return true;
+    }
+
+    @Override
+    public void onResultClick(int position) {
+        String result = history.get(position);
+        Intent intent = new Intent();
+        intent.putExtra("DataFromHistory", result);
+        setResult(Activity.RESULT_OK, intent);
+        finish();
     }
 }

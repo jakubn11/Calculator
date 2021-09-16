@@ -5,7 +5,13 @@
     <item
         android:id="@+id/delete"
         android:icon="@drawable/delete_icon"
-        android:title="Delete"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom"
+        android:title="Delete" />
+
+    <item
+        android:id="@+id/delete_nothing"
+        android:icon="@drawable/delete_nothing_icon"
+        app:showAsAction="ifRoom"
+        android:title="Nothing" />
 
 </menu>

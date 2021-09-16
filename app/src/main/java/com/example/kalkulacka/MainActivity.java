@@ -1,11 +1,16 @@
 package com.example.kalkulacka;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -32,8 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean deleteHistory;
     private boolean cancel = true;
     private TextView meziResult;
-    private ImageView historyImage;
     private String vysledek, historyText;
+    private MenuItem historyItem;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -63,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         btnComma = findViewById(R.id.buttonComma);
         result = findViewById(R.id.result);
         meziResult = findViewById(R.id.meziResult);
-        historyImage = findViewById(R.id.historyImage);
 
         numbers = new ArrayList<>();
         history = new ArrayList<>();
@@ -73,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
         numbersTemp2 = new ArrayList<>();
 
         result.setHint("0");
+
+        getSupportActionBar().setTitle("Kalkulačka");
 
         btn0.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -368,6 +374,7 @@ public class MainActivity extends AppCompatActivity {
                 String word2 = meziResult.getText().toString();
                 char[] chrs2 = word2.toCharArray();
 
+
                 if (word2.length() > 0) {
                     char lastChar2 = chrs2[word2.length() - 1];
                     if (lastChar2 == '+' || lastChar2 == '-' || lastChar2 == '*') {
@@ -380,6 +387,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
+
                 result.setText(null);
             }
         });
@@ -463,14 +471,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        historyImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent showHistory = new Intent(getApplicationContext(), HistoryActivity.class);
-                showHistory.putExtra("History", history);
-                startActivityForResult(showHistory, 1);
-            }
-        });
+//        historyImage.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent showHistory = new Intent(getApplicationContext(), HistoryActivity.class);
+//                showHistory.putExtra("History", history);
+//                startActivityForResult(showHistory, 1);
+//            }
+//        });
 
         btnRecent.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -487,6 +495,29 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu_main, menu);
+
+        historyItem = menu.findItem(R.id.history);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.history:
+                Intent showHistory = new Intent(getApplicationContext(), HistoryActivity.class);
+                showHistory.putExtra("History", history);
+                startActivityForResult(showHistory, 1);
+                return true;
+
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
