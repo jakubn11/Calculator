@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btn0, btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8, btn9, btnPlus, btnMinus, btnDel, btnEquals, btnPlusMinus, btnMultiply, btnDivide, btnRecent, btnPi, btnComma;
     private EditText result;
+    private HorizontalScrollView hs;
     private ArrayList<Integer> numbers;
     private ArrayList<Integer> numbersTemp;
     private ArrayList<Integer> numbersTemp2;
@@ -68,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         btnComma = findViewById(R.id.buttonComma);
         result = findViewById(R.id.result);
         meziResult = findViewById(R.id.meziResult);
+        hs = findViewById(R.id.scrollView);
 
         numbers = new ArrayList<>();
         history = new ArrayList<>();
@@ -77,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
         numbersTemp2 = new ArrayList<>();
 
         result.setHint("0");
+
+        hs.getRight();
 
         getSupportActionBar().setTitle("Kalkulačka");
 
