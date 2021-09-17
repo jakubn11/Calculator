@@ -3,9 +3,15 @@ package com.example.kalkulacka;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
@@ -81,7 +87,9 @@ public class MainActivity extends AppCompatActivity {
 
         result.setHint("0");
 
-        hs.getRight();
+//        hs.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+
+        createNotificationChannel();
 
         getSupportActionBar().setTitle("Kalkulačka");
 
@@ -205,6 +213,12 @@ public class MainActivity extends AppCompatActivity {
                                     operatory.add("+");
                                     String q = meziResult.getText().toString();
                                     meziResult.setText(q + result.getText() + "+");
+                                    hs.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            hs.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+                                        }
+                                    }, 100L);
                                 }
                             }
                         }
@@ -259,6 +273,12 @@ public class MainActivity extends AppCompatActivity {
                                     operatory.add("-");
                                     String q = meziResult.getText().toString();
                                     meziResult.setText(q + result.getText() + "-");
+                                    hs.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            hs.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+                                        }
+                                    }, 100L);
                                 }
                             }
                         }
@@ -312,6 +332,12 @@ public class MainActivity extends AppCompatActivity {
                                     operatory.add("*");
                                     String q = meziResult.getText().toString();
                                     meziResult.setText(q + result.getText() + "*");
+                                    hs.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            hs.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+                                        }
+                                    }, 100L);
                                 }
                             }
                         }
@@ -364,6 +390,12 @@ public class MainActivity extends AppCompatActivity {
                                     operatory.add("/");
                                     String q = meziResult.getText().toString();
                                     meziResult.setText(q + result.getText() + "/");
+                                    hs.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            hs.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+                                        }
+                                    }, 100L);
                                 }
                             }
                         }
@@ -418,6 +450,13 @@ public class MainActivity extends AppCompatActivity {
 
                     multiplyDevide();
 
+                    hs.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            hs.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+                        }
+                    }, 100L);
+
                     numbers.clear();
                     operatory.clear();
                     numbersTemp.clear();
@@ -448,6 +487,23 @@ public class MainActivity extends AppCompatActivity {
                         System.out.println("Operátory: " + operatory);
                         System.out.println("Historie: " + history);
 
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "My notification");
+                        builder.setSmallIcon(R.drawable.notification_icon);
+                        builder.setContentTitle("Výsledek příkladu");
+                        builder.setContentText(vysledek);
+                        builder.setPriority(NotificationCompat.PRIORITY_HIGH);
+                        builder.setAutoCancel(true);
+
+                        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                        notificationManager.notify(1, builder.build());
+
+                        hs.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                hs.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+                            }
+                        }, 100L);
+
                         numbers.clear();
                         operatory.clear();
                         numbersTemp.clear();
@@ -476,15 +532,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        historyImage.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent showHistory = new Intent(getApplicationContext(), HistoryActivity.class);
-//                showHistory.putExtra("History", history);
-//                startActivityForResult(showHistory, 1);
-//            }
-//        });
-
         btnRecent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -500,6 +547,15 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("My notification", "My notification", NotificationManager.IMPORTANCE_HIGH);
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            channel.setImportance(NotificationManager.IMPORTANCE_HIGH);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
     @Override
@@ -638,6 +694,16 @@ public class MainActivity extends AppCompatActivity {
                 result.setText(vysledek);
                 history.add(meziResult.getText().toString() + vysledek);
                 System.out.println("Historie " + history);
+
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "My notification");
+                builder.setSmallIcon(R.drawable.notification_icon);
+                builder.setContentTitle("Výsledek příkladu");
+                builder.setContentText(numbers.get(0).toString());
+                builder.setPriority(NotificationCompat.PRIORITY_HIGH);
+                builder.setAutoCancel(true);
+
+                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                notificationManager.notify(1, builder.build());
             }
         }
     }
@@ -649,7 +715,19 @@ public class MainActivity extends AppCompatActivity {
             cons(numbers.get(i), operatory.get(i - 1));
         }
 
+
         vysledek = String.valueOf(res);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "My notification");
+        builder.setSmallIcon(R.drawable.notification_icon);
+        builder.setContentTitle("Výsledek příkladu");
+        builder.setContentText(vysledek);
+        builder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        builder.setAutoCancel(true);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+        notificationManager.notify(1, builder.build());
+
         result.setText(vysledek);
         history.add(meziResult.getText().toString() + vysledek);
         System.out.println("Historie " + history);
