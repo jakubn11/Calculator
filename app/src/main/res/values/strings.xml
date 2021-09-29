@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Kalkulacka</string>
+    <string name="app_name">Kalkulačka</string>
+    <string name="nothing_in_history">Zatím tu není žádná historie</string>
 </resources>

@@ -23,8 +23,8 @@
                 android:id="@+id/scrollView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scrollbars="none"
-                android:layout_gravity="center_vertical">
+                android:layout_gravity="center_vertical"
+                android:scrollbars="none">
 
                 <TextView
                     android:id="@+id/meziResult"
@@ -62,8 +62,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/resultView"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="40dp">
+        android:layout_alignParentBottom="true">
 
         <TableRow
             android:layout_width="match_parent"

@@ -26,7 +26,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     private final ArrayList<Character> resultList;
     private final ArrayList<Character> resultList2;
     private String listString, listString2;
-    private OnResultListener onResultListener;
+    private final OnResultListener onResultListener;
 
     // data is passed into the constructor
     public MyRecyclerViewAdapter(Context context, ArrayList<String> data, OnResultListener onResultListener) {
@@ -61,7 +61,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_row, parent, false),  onResultListener);
+        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_row, parent, false), onResultListener);
     }
 
     // binds the data to the TextView in each row
@@ -84,7 +84,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
 
 
     // stores and recycles views as they are scrolled off screen
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         private Activity mActivity;
         private TextView rowSample, resultSample;
         private OnResultListener onResultListener;
@@ -95,17 +95,25 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
             resultSample = itemView.findViewById(R.id.resultSample);
             rowSample = itemView.findViewById(R.id.rowSample);
             this.onResultListener = onResultListener;
-
             itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
             onResultListener.onResultClick(getAbsoluteAdapterPosition());
         }
+
+        @Override
+        public boolean onLongClick(View v) {
+            onResultListener.onLongClick(getAbsoluteAdapterPosition());
+            return true;
+        }
     }
+
     public interface OnResultListener {
         void onResultClick(int position);
+        void onLongClick(int position);
     }
 }
 

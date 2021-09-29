@@ -3,6 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/qr_code"
+        android:icon="@drawable/qr_code_icon"
+        app:showAsAction="ifRoom"
+        android:title="QR code" />
+
+    <item
+        android:id="@+id/share"
+        android:icon="@drawable/share_icon"
+        app:showAsAction="ifRoom"
+        android:title="Share" />
+
+    <item
         android:id="@+id/history"
         android:icon="@drawable/history_icon"
         app:showAsAction="ifRoom"

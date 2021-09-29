@@ -4,13 +4,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -56,13 +61,7 @@ public class HistoryActivity extends AppCompatActivity implements MyRecyclerView
         Bundle extras = intent.getExtras();
         history = extras.getStringArrayList("History");
 
-        if (history.size() == 0) {
-            recyclerHistory.setVisibility(View.GONE);
-            emptyList.setVisibility(View.VISIBLE);
-        } else {
-            recyclerHistory.setVisibility(View.VISIBLE);
-            emptyList.setVisibility(View.GONE);
-        }
+        checkListEmpty();
 
         Collections.reverse(history);
 
@@ -93,7 +92,7 @@ public class HistoryActivity extends AppCompatActivity implements MyRecyclerView
                 recyclerHistory.setAdapter(recyclerAdapter);
                 Intent intent = new Intent();
                 intent.putExtra("DeleteHistory", true);
-                setResult(RESULT_OK, intent);
+                setResult(2, intent);
                 finish();
                 return true;
 
@@ -108,14 +107,27 @@ public class HistoryActivity extends AppCompatActivity implements MyRecyclerView
         if (history.isEmpty()) {
             deleteNothing.setVisible(true);
             delete.setVisible(false);
-        }else {
+        } else {
             deleteNothing.setVisible(false);
             delete.setVisible(true);
         }
     }
 
+    private void checkListEmpty() {
+        if (history.size() == 0) {
+            recyclerHistory.setVisibility(View.GONE);
+            emptyList.setVisibility(View.VISIBLE);
+        } else {
+            recyclerHistory.setVisibility(View.VISIBLE);
+            emptyList.setVisibility(View.GONE);
+        }
+    }
+
     @Override
     public boolean onSupportNavigateUp() {
+        Intent intent = new Intent();
+        intent.putExtra("HistoryArrayList", history);
+        setResult(3, intent);
         finish();
         return true;
     }
@@ -125,7 +137,37 @@ public class HistoryActivity extends AppCompatActivity implements MyRecyclerView
         String result = history.get(position);
         Intent intent = new Intent();
         intent.putExtra("DataFromHistory", result);
-        setResult(Activity.RESULT_OK, intent);
+        setResult(1, intent);
         finish();
+    }
+
+    @Override
+    public void onLongClick(int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(HistoryActivity.this);
+        builder.setTitle("Vymazat z historie?");
+        builder.setPositiveButton("Vymazat", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                history.remove(position);
+                recyclerAdapter.notifyItemRemoved(position);
+
+                checkListEmpty();
+
+                checkList();
+
+                Collections.reverse(history);
+
+                System.out.println(history);
+            }
+        });
+
+        builder.setNegativeButton("Zrušit", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.show();
     }
 }

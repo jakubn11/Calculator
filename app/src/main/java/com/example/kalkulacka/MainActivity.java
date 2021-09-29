@@ -7,13 +7,18 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -23,9 +28,16 @@ import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
+import java.nio.channels.InterruptedByTimeoutException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+
+import classes.Capture;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> history;
     private ArrayList<String> operatory;
     private ArrayList<String> operatoryTemp;
+    private ArrayList<Character> resultList;
+    private ArrayList<Character> resultList2;
     private int res, resultMultiply, first, second, indexOfSecond, indexOfFirst;
     private boolean stav = false;
     private boolean endResult = false;
@@ -45,8 +59,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean deleteHistory;
     private boolean cancel = true;
     private TextView meziResult;
-    private String vysledek, historyText;
-    private MenuItem historyItem;
+    private String vysledek, historyText, listString, listString2, textFromQR;
+    private MenuItem historyItem, qrItem, shareItem;
+    private char lastChar8;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -84,14 +99,14 @@ public class MainActivity extends AppCompatActivity {
         numbersTemp = new ArrayList<>();
         operatoryTemp = new ArrayList<>();
         numbersTemp2 = new ArrayList<>();
+        resultList = new ArrayList<>();
+        resultList2 = new ArrayList<>();
 
         result.setHint("0");
 
-//        hs.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
-
         createNotificationChannel();
 
-        getSupportActionBar().setTitle("Kalkulačka");
+        getSupportActionBar().setTitle(getString(R.string.app_name));
 
         btn0.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -228,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
 
-                if (endResult == true) {
+                if (endResult) {
                     meziResult.setText(result.getText() + "+");
                     endResult = false;
                 }
@@ -286,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                if (endResult == true) {
+                if (endResult) {
                     meziResult.setText(result.getText() + "-");
                     endResult = false;
                 }
@@ -345,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                if (endResult == true) {
+                if (endResult) {
                     meziResult.setText(result.getText() + "*");
                     endResult = false;
                 }
@@ -403,14 +418,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                if (endResult == true) {
+                if (endResult) {
                     meziResult.setText(result.getText() + "/");
                     endResult = false;
                 }
 
                 String word2 = meziResult.getText().toString();
                 char[] chrs2 = word2.toCharArray();
-
 
                 if (word2.length() > 0) {
                     char lastChar2 = chrs2[word2.length() - 1];
@@ -424,7 +438,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-
                 result.setText(null);
             }
         });
@@ -433,69 +446,30 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                stav = true;
-                endResult = true;
+                if (!meziResult.getText().toString().isEmpty()) {
+                    String word = meziResult.getText().toString();
+                    char[] chrs = word.toCharArray();
+                    lastChar8 = chrs[word.length() - 1];
+                }
 
-                if (checkMultiply(operatory) && meziResult.getText().toString().length() > 1 && vysledekBool != true && !result.getText().toString().isEmpty()) {
-                    int a = Integer.parseInt(result.getText().toString());
-                    numbers.add(a);
+                if (result.getText().toString() != null && !meziResult.getText().toString().isEmpty() && lastChar8 != '=') {
+                    stav = true;
+                    endResult = true;
 
-                    String q = meziResult.getText().toString();
-                    meziResult.setText(q + result.getText() + "=");
+                    if (checkMultiply(operatory) && meziResult.getText().toString().length() > 1 && !vysledekBool && !result.getText().toString().isEmpty()) {
 
-                    System.out.println("BEFORE CALL METHOD multiplyDevice() " + numbers);
-                    System.out.println("BEFORE CALL METHOD multiplyDevice() " + operatory);
-                    System.out.println("BEFORE CALL METHOD multiplyDevice() " + numbersTemp);
-                    System.out.println("BEFORE CALL METHOD multiplyDevice() " + operatoryTemp);
-
-                    multiplyDevide();
-
-                    hs.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            hs.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
-                        }
-                    }, 100L);
-
-                    numbers.clear();
-                    operatory.clear();
-                    numbersTemp.clear();
-                    operatory.clear();
-                    vysledekBool = true;
-                    cancel = true;
-
-                } else {
-                    if (meziResult.getText().toString().length() > 1 && vysledekBool != true && !result.getText().toString().isEmpty()) {
                         int a = Integer.parseInt(result.getText().toString());
                         numbers.add(a);
 
                         String q = meziResult.getText().toString();
                         meziResult.setText(q + result.getText() + "=");
 
-                        res = numbers.get(0);
+                        System.out.println("BEFORE CALL METHOD multiplyDevice() " + numbers);
+                        System.out.println("BEFORE CALL METHOD multiplyDevice() " + operatory);
+                        System.out.println("BEFORE CALL METHOD multiplyDevice() " + numbersTemp);
+                        System.out.println("BEFORE CALL METHOD multiplyDevice() " + operatoryTemp);
 
-                        for (int i = 1; i < numbers.size(); i++) {
-                            cons(numbers.get(i), operatory.get(i - 1));
-                        }
-
-                        vysledek = String.valueOf(res);
-                        result.setText(vysledek);
-                        res = Integer.parseInt(vysledek);
-                        history.add(meziResult.getText().toString() + vysledek);
-
-                        System.out.println("Čísla: " + numbers);
-                        System.out.println("Operátory: " + operatory);
-                        System.out.println("Historie: " + history);
-
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "My notification");
-                        builder.setSmallIcon(R.drawable.notification_icon);
-                        builder.setContentTitle("Výsledek příkladu");
-                        builder.setContentText(vysledek);
-                        builder.setPriority(NotificationCompat.PRIORITY_HIGH);
-                        builder.setAutoCancel(true);
-
-                        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
-                        notificationManager.notify(1, builder.build());
+                        multiplyDevide();
 
                         hs.postDelayed(new Runnable() {
                             @Override
@@ -510,6 +484,64 @@ public class MainActivity extends AppCompatActivity {
                         operatory.clear();
                         vysledekBool = true;
                         cancel = true;
+                        endResult = true;
+                    } else {
+                        if (meziResult.getText().toString().length() > 1 && !vysledekBool && !result.getText().toString().isEmpty()) {
+                            int a = Integer.parseInt(result.getText().toString());
+                            numbers.add(a);
+
+                            String q = meziResult.getText().toString();
+                            meziResult.setText(q + result.getText() + "=");
+
+                            res = numbers.get(0);
+
+                            for (int i = 1; i < numbers.size(); i++) {
+                                cons(numbers.get(i), operatory.get(i - 1));
+                            }
+
+                            vysledek = String.valueOf(res);
+                            result.setText(vysledek);
+                            res = Integer.parseInt(vysledek);
+                            history.add(meziResult.getText().toString() + vysledek);
+
+                            System.out.println("Čísla: " + numbers);
+                            System.out.println("Operátory: " + operatory);
+                            System.out.println("Historie: " + history);
+
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "My notification");
+                            builder.setSmallIcon(R.drawable.notification_icon);
+                            builder.setContentTitle("Výsledek příkladu");
+                            builder.setContentText(vysledek);
+                            builder.setPriority(NotificationCompat.PRIORITY_HIGH);
+                            builder.setAutoCancel(true);
+
+                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                            notificationManager.notify(1, builder.build());
+
+                            hs.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    hs.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+                                }
+                            }, 100L);
+
+                            numbers.clear();
+                            operatory.clear();
+                            numbersTemp.clear();
+                            operatory.clear();
+                            vysledekBool = true;
+                            cancel = true;
+                            endResult = true;
+                        }
+                    }
+
+                    String word = meziResult.getText().toString();
+                    char[] chrs = word.toCharArray();
+                    char lastChar9 = chrs[word.length() - 1];
+
+                    if (lastChar9 != '=') {
+                        endResult = false;
+                        vysledekBool = false;
                     }
                 }
             }
@@ -535,7 +567,7 @@ public class MainActivity extends AppCompatActivity {
         btnRecent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (vysledekBool == true) {
+                if (vysledekBool) {
                     endResult = false;
                     result.setText("");
                     meziResult.setText("");
@@ -545,7 +577,6 @@ public class MainActivity extends AppCompatActivity {
                     result.setText("0");
                 }
             }
-
         });
     }
 
@@ -564,6 +595,8 @@ public class MainActivity extends AppCompatActivity {
         menuInflater.inflate(R.menu.menu_main, menu);
 
         historyItem = menu.findItem(R.id.history);
+        qrItem = menu.findItem(R.id.qr_code);
+        shareItem = menu.findItem(R.id.share);
 
         return true;
     }
@@ -576,7 +609,17 @@ public class MainActivity extends AppCompatActivity {
                 showHistory.putExtra("History", history);
                 startActivityForResult(showHistory, 1);
                 return true;
-
+            case R.id.qr_code:
+                IntentIntegrator intentIntegrator = new IntentIntegrator(MainActivity.this);
+                intentIntegrator.setBeepEnabled(true);
+                intentIntegrator.setOrientationLocked(true);
+                intentIntegrator.setCaptureActivity(Capture.class);
+                intentIntegrator.initiateScan();
+                setResult(3);
+                return true;
+            case R.id.share:
+                Toast.makeText(getApplicationContext(), "Share QR Code", Toast.LENGTH_SHORT).show();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -584,27 +627,95 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-            if (resultCode == RESULT_OK) {
-                historyText = data.getStringExtra("DataFromHistory");
-                if (historyText != null) {
-                    if (historyText.length() > 0) {
-                        StringTokenizer tokens = new StringTokenizer(historyText, "=");
-                        String first = tokens.nextToken();
-                        String second = tokens.nextToken();
-                        meziResult.setText(first + "=");
-                        result.setText(second);
-                        vysledek = second;
-                        numbers.clear();
-                        operatory.clear();
-                        endResult = true;
+        if (resultCode != RESULT_CANCELED) {
+            switch (resultCode) {
+                case -1:
+                    System.out.println("request: " + requestCode + " result: " + resultCode);
+                    IntentResult intentResult = new IntentIntegrator(MainActivity.this).parseActivityResult(requestCode, resultCode, data);
+                    if (intentResult.getContents() != null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+                        builder.setTitle("Úspěšně naskenováno");
+                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                stav = true;
+
+                                resultList.clear();
+                                resultList2.clear();
+
+                                textFromQR = intentResult.getContents();
+
+                                history.add(textFromQR);
+
+                                System.out.println(history);
+                                System.out.println(operatory);
+                                System.out.println(numbers);
+
+                                btnDel.performClick();
+
+                                int equalsPosition = textFromQR.indexOf("=");
+                                StringBuffer stringBuffer = new StringBuffer(textFromQR);
+                                for (int i = equalsPosition + 1; i < textFromQR.length(); i++) {
+                                    resultList.add(stringBuffer.charAt(i));
+                                    listString = TextUtils.join("", resultList);
+                                }
+                                result.setText(listString);
+
+                                int equalsPosition2 = textFromQR.indexOf("=");
+                                StringBuffer stringBuffer2 = new StringBuffer(textFromQR);
+                                for (int i = 0; i < equalsPosition2 + 1; i++) {
+                                    resultList2.add(stringBuffer2.charAt(i));
+                                    listString2 = TextUtils.join("", resultList2);
+                                }
+                                meziResult.setText(listString2);
+
+                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "My notification");
+                                builder.setSmallIcon(R.drawable.notification_icon);
+                                builder.setContentTitle("Výsledek příkladu");
+                                builder.setContentText(listString);
+                                builder.setPriority(NotificationCompat.PRIORITY_HIGH);
+                                builder.setAutoCancel(true);
+
+                                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                                notificationManager.notify(1, builder.build());
+
+                                vysledekBool = true;
+                                cancel = true;
+                                endResult = true;
+
+                                dialog.dismiss();
+                            }
+                        });
+                        builder.show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Nothing scanned", Toast.LENGTH_SHORT).show();
                     }
-                }
-                deleteHistory = data.getBooleanExtra("DeleteHistory", false);
-                if (deleteHistory) {
-                    history.clear();
-                    btnDel.performClick();
-                }
+                    break;
+
+                case 0:
+
+                case 1:
+                    historyText = data.getStringExtra("DataFromHistory");
+                    StringTokenizer tokens = new StringTokenizer(historyText, "=");
+                    String first = tokens.nextToken();
+                    String second = tokens.nextToken();
+                    meziResult.setText(first + "=");
+                    result.setText(second);
+                    vysledek = second;
+                    numbers.clear();
+                    operatory.clear();
+                    endResult = true;
+                    break;
+
+                case 2:
+                    deleteHistory = data.getBooleanExtra("DeleteHistory", false);
+                    if (deleteHistory) {
+                        history.clear();
+                        btnDel.performClick();
+                    }
+                    break;
+                case 3:
+                    history = data.getStringArrayListExtra("HistoryArrayList");
             }
         }
     }
@@ -692,6 +803,7 @@ public class MainActivity extends AppCompatActivity {
                 vysledek = String.valueOf(numbers.get(0));
                 System.out.println("AFTER GET 0 FROM NUMBERS " + numbers);
                 result.setText(vysledek);
+
                 history.add(meziResult.getText().toString() + vysledek);
                 System.out.println("Historie " + history);
 
@@ -715,7 +827,6 @@ public class MainActivity extends AppCompatActivity {
             cons(numbers.get(i), operatory.get(i - 1));
         }
 
-
         vysledek = String.valueOf(res);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "My notification");
@@ -735,7 +846,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void removeLastChar(String str) {
         operatory.remove(operatory.size() - 1);
-        StringBuffer sb = new StringBuffer(str);
+        StringBuilder sb = new StringBuilder(str);
         sb.deleteCharAt(sb.length() - 1);
         meziResult.setText(sb.toString());
     }
